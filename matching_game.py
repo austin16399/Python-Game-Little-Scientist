@@ -54,27 +54,54 @@ class ScienceGame:
         (39, 174, 96),    # Green
         (230, 126, 34),   # Orange
         (192, 57, 43),    # Red
-        (142, 142, 142),  # Silver
+        (0, 255, 185),  # bright blueish greenish 
         (241, 196, 15),   # Yellow
-        (46, 204, 113),   # Emerald
+        (255, 0, 162),   # bright pink 
     ]
+
+
+
+## Include Images in here and fix the game logic
+    # # LEVEL1_IMAGES = [
+    # #     pygame.image.load("images/atom1.png"),
+    # #     pygame.image.load("images/atom2.png"),
+    # #     pygame.image.load("images/atom3.png"),
+    # #     pygame.image.load("images/atom4.png"),
+    # #     pygame.image.load("images/atom5.png"),
+    # #     pygame.image.load("images/atom6.png"),
+    # #     pygame.image.load("images/atom7.png"),
+    # #     pygame.image.load("images/atom8.png")
+    # ]
 
     # Level 2 colors (more complex)
     LEVEL2_COLORS = [
         (155, 89, 182),   # Purple
         (52, 152, 219),   # Blue
-        (26, 188, 156),   # Turquoise
+        (0, 255, 185),  # bright blueish greenish 
         (241, 196, 15),   # Yellow
         (230, 126, 34),   # Orange
         (231, 76, 60),    # Red
-        (149, 165, 166),  # Gray
-        (211, 84, 0),     # Dark Orange
-        (41, 128, 185),   # Light Blue
-        (22, 160, 133),   # Green
+        (149, 165, 166),  # Gray / fix
+        (211, 84, 0),     # Dark Orange / fix
+        (41, 128, 185),   # Light Blue / fix
+        (22, 160, 133),   # Green 
         (192, 57, 43),    # Dark Red
         (142, 68, 173),   # Dark Purple
-        (39, 174, 96)     # Light Green
+        (255, 0, 162),   # bright pink 
     ]
+
+## Include Images in here and fix the game logic for the game 2
+    # # LEVEL2_IMAGES = [
+    # #     pygame.image.load("images/atom1.png"),
+    # #     pygame.image.load("images/atom2.png"),
+    # #     pygame.image.load("images/atom3.png"),
+    # #     pygame.image.load("images/atom4.png"),
+    # #     pygame.image.load("images/atom5.png"),
+    # #     pygame.image.load("images/atom6.png"),
+    # #     pygame.image.load("images/atom7.png"),
+    # #     pygame.image.load("images/atom8.png")
+    # ]
+
 
     SCIENCE_MESSAGES = [
         "Excellent observation!",
@@ -89,7 +116,7 @@ class ScienceGame:
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((800, 600))
-        pygame.display.set_caption("Science Night Memory Lab")
+        pygame.display.set_caption("Memory Match Mania")
         self.font = pygame.font.Font(None, 36)
         self.title_font = pygame.font.Font(None, 48)
         self.state = GameState()
