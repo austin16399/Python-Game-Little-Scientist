@@ -76,6 +76,16 @@ class ScienceGame:
         (39, 174, 96)     # Light Green
     ]
 
+    SCIENCE_MESSAGES = [
+        "Excellent observation!",
+        "Hypothesis confirmed!",
+        "Data match found!",
+        "Scientific success!",
+        "Discovery made!",
+        "Element matched!",
+        "Analysis complete!"
+    ]
+
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((800, 600))
@@ -230,7 +240,7 @@ class ScienceGame:
                 tile.rect.height
             )
             color = tile.color if tile.flip_progress >= 0.5 else (60, 80, 100)
-            pygame.draw.rect(self.screen, color, scaled_rect, border_radius=10)
+            pygame.draw.rect(self.screen, color, scaled_rect, border_radius=15)
             
             if scale > 0.1:
                 if tile.flip_progress >= 0.5:
