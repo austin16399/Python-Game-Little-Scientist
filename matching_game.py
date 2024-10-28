@@ -13,7 +13,7 @@ class GameState:
     matches_found: int = 0
     selected_tile: Optional[Tuple[int, int]] = None
     start_time: float = time.time()
-    message: str = "Little Scientists: Match Adventure Quest!"
+    message: str = "Little Scientists: Matching Adventure Quest!"
     matched_pairs: Set[Tuple[int, int]] = None
     game_complete: bool = False
     
