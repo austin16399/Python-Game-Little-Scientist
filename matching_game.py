@@ -76,6 +76,16 @@ class ScienceGame:
         (39, 174, 96)     # Light Green
     ]
 
+    SCIENCE_MESSAGES = [
+        "Excellent observation!",
+        "Hypothesis confirmed!",
+        "Data match found!",
+        "Scientific success!",
+        "Discovery made!",
+        "Element matched!",
+        "Analysis complete!"
+    ]
+
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((800, 600))
