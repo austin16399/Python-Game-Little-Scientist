@@ -62,7 +62,7 @@ class Button:
 
 class ScienceGame:
     # Level 1: 4x4 grid (8 pairs needed)
-    # Level 2: 5x5 grid (13 pairs needed)
+    # Level 2: 5x5 grid (12 pairs needed)
     COLORS = {
         1: [  # Level 1 colors (8 pairs)
             (230, 25, 75),    # Red
@@ -74,7 +74,7 @@ class ScienceGame:
             (70, 240, 240),   # Cyan
             (240, 50, 230),   # Magenta
         ],
-        2: [  # Level 2 colors (13 pairs)
+        2: [  # Level 2 colors (12 pairs)
             (230, 25, 75),    # Red
             (60, 180, 75),    # Green
             (255, 225, 25),   # Yellow
@@ -87,7 +87,6 @@ class ScienceGame:
             (250, 190, 212),  # Pink
             (0, 128, 128),    # Teal
             (220, 190, 255),  # Lavender
-            (170, 110, 40),   # Brown
         ]
     }
 
@@ -143,6 +142,7 @@ class ScienceGame:
                  random.randint(2, 5)]
                 for _ in range(50)]
 
+ # new level set up
     def setup_level(self) -> None:
         self.grid_size = 4 if self.state.level == 1 else 5
         self.tile_size = 100 if self.state.level == 1 else 80
@@ -150,31 +150,39 @@ class ScienceGame:
         
         # Get colors for current level
         colors = self.COLORS[self.state.level]
-        needed_pairs = (self.grid_size * self.grid_size) // 2
         
-        # Create pairs of colors
-        color_pairs = []
-        for i in range(needed_pairs):
-            color_pairs.extend([colors[i], colors[i]])  # Add each color twice
-        
-        # If we have an odd number of tiles (5x5 grid), add one more color
-        if len(color_pairs) < self.grid_size * self.grid_size:
-            color_pairs.append(colors[needed_pairs])
+        if self.state.level == 1:
+            needed_pairs = (self.grid_size * self.grid_size) // 2  # 8 pairs for 4x4
+            # Create pairs of colors
+            color_pairs = []
+            for i in range(needed_pairs):
+                color_pairs.extend([colors[i], colors[i]])  # Add each color twice
+        else:
+            # For level 2, we need 12 pairs (24 tiles) for the donut shape
+            color_pairs = []
+            for i in range(12):  # 12 pairs for 5x5 donut
+                color_pairs.extend([colors[i], colors[i]])
         
         random.shuffle(color_pairs)
         
         # Create tiles
         self.tiles.clear()
+        color_index = 0
+        
         for row in range(self.grid_size):
             for col in range(self.grid_size):
+                # Skip the center tile in level 2 to create donut shape
+                if self.state.level == 2 and row == 2 and col == 2:
+                    continue
+                    
                 rect = pygame.Rect(
                     self.margin + col * self.tile_size,
                     120 + row * self.tile_size,
                     self.tile_size - 10,
                     self.tile_size - 10
                 )
-                idx = row * self.grid_size + col
-                self.tiles[(row, col)] = Tile(color_pairs[idx], rect)
+                self.tiles[(row, col)] = Tile(color_pairs[color_index], rect)
+                color_index += 1
 
     def start_next_level(self) -> None:
         self.state.level += 1
@@ -200,6 +208,7 @@ class ScienceGame:
         self.screen.blit(msg2, (screen_center_x - msg2.get_width() // 2, 320))
         pygame.display.flip()  # Make sure the transition screen is displayed
 
+    # new method made
     def handle_click(self, pos: Tuple[int, int], current_time: float) -> None:
         if self.waiting_for_reset or self.transition_active:
             return
@@ -208,7 +217,13 @@ class ScienceGame:
         row = (y - 120) // self.tile_size
         col = (x - self.margin) // self.tile_size
         
-        if not (0 <= row < self.grid_size and 0 <= col < self.grid_size):
+        # Skip if clicked position is not valid or is the center hole in level 2
+        if not (0 <= row < self.grid_size and 0 <= col < self.grid_size) or \
+           (self.state.level == 2 and row == 2 and col == 2):
+            return
+            
+        # Skip if the tile doesn't exist (center hole)
+        if (row, col) not in self.tiles:
             return
             
         tile = self.tiles[(row, col)]
