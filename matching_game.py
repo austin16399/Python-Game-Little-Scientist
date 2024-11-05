@@ -42,6 +42,8 @@ class Tile:
         self.is_flipping = True
         self.flip_start_time = current_time
 
+
+# new button feature
 class Button:
     def __init__(self, text: str, rect: pygame.Rect, color: Tuple[int, int, int], hover_color: Tuple[int, int, int]):
         self.text = text
@@ -49,9 +51,11 @@ class Button:
         self.color = color
         self.hover_color = hover_color
         self.font = pygame.font.Font(None, 36)
+        self.is_hovered = False
 
     def draw(self, screen: pygame.Surface) -> None:
-        color = self.hover_color if self.rect.collidepoint(pygame.mouse.get_pos()) else self.color
+        self.is_hovered = self.rect.collidepoint(pygame.mouse.get_pos())
+        color = self.hover_color if self.is_hovered else self.color
         pygame.draw.rect(screen, color, self.rect)
         text_surface = self.font.render(self.text, True, (255, 255, 255))
         text_rect = text_surface.get_rect(center=self.rect.center)
@@ -92,17 +96,14 @@ class ScienceGame:
 
     SCIENCE_MESSAGES = [
         "Excellent observation!",
-        "Hypothesis confirmed!",
         "Data match found!",
         "Scientific success!",
         "Discovery made!",
-        "Element matched!",
-        "Analysis complete!"
     ]
 
     def __init__(self):
         pygame.init()
-        self.fullscreen = False
+        self.fullscreen = True
         self.screen = self.set_screen_mode()
         pygame.display.set_caption("Science Matching Game")
         
@@ -124,13 +125,20 @@ class ScienceGame:
                                  (0, 200, 0), (0, 255, 0))
         self.quit_button = Button("Quit", pygame.Rect(screen_center_x - 100, 470, 200, 50), 
                                  (200, 0, 0), (255, 0, 0))
+        self.exit_button = Button("X", 
+                                pygame.Rect(self.screen.get_width() - 50, 10, 40, 40),
+                                (200, 0, 0),
+                                (255, 0, 0))
         
         self.game_started = False
         self.countdown_start = 0
         self.setup_level()
 
     def set_screen_mode(self) -> pygame.Surface:
-        return pygame.display.set_mode((0, 0), pygame.FULLSCREEN) if self.fullscreen else pygame.display.set_mode((800, 600))
+        if self.fullscreen:
+            return pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        else:
+            return pygame.display.set_mode((800, 600))
 
     def _create_particles(self) -> List[List[float]]:
         width, height = self.screen.get_width(), self.screen.get_height()
@@ -189,7 +197,7 @@ class ScienceGame:
         self.state.matches_found = 0
         self.state.matched_pairs.clear()
         self.state.selected_tile = None
-        self.state.message = f"Starting Level {self.state.level}! More complex molecules ahead!"
+        self.state.message = f"Starting Level {self.state.level}! More complex level ahead!"
         self.setup_level()
         self.transition_active = False
         self.transition_start_time = 0
@@ -281,6 +289,9 @@ class ScienceGame:
         pygame.draw.rect(self.screen, (30, 40, 50), (0, 0, self.screen.get_width(), 100))
         pygame.draw.line(self.screen, (50, 150, 200), (0, 100), (self.screen.get_width(), 100), 2)
         
+        self.exit_button.draw(self.screen)
+
+
         stats = [
             f"TIME: {self.state.game_time:.1f}s",
             f"LEVEL: {self.state.level}",
@@ -339,6 +350,8 @@ class ScienceGame:
         for particle in self.particles:
             pygame.draw.circle(self.screen, (int(particle[4]),) * 3, 
                              (int(particle[0]), int(particle[1])), int(particle[5]))
+            
+        self.exit_button.draw(self.screen)
 
         title_text = self.title_font.render("Epic Memory Match!", True, (255, 255, 255))
         title_rect = title_text.get_rect(center=(self.screen.get_width() // 2, 200))
@@ -366,6 +379,10 @@ class ScienceGame:
                         self.screen = self.set_screen_mode()
                         self.setup_level()
                 if event.type == pygame.MOUSEBUTTONDOWN:
+                    if self.exit_button.rect.collidepoint(event.pos):
+                        pygame.quit()
+                        return
+                        
                     if not self.game_started:
                         if self.start_button.is_clicked(event.pos):
                             self.game_started = True
