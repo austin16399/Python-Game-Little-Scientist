@@ -50,7 +50,7 @@ class Button:
         self.rect = rect
         self.color = color
         self.hover_color = hover_color
-        self.font = pygame.font.Font(None, 36)
+        self.font = pygame.font.Font(None, 48)  # Increased default font size
         self.is_hovered = False
 
     def draw(self, screen: pygame.Surface) -> None:
@@ -151,29 +151,42 @@ class ScienceGame:
                 for _ in range(50)]
 
  # new level set up
+
     def setup_level(self) -> None:
         self.grid_size = 4 if self.state.level == 1 else 5
-        self.tile_size = 100 if self.state.level == 1 else 80
-        self.margin = (self.screen.get_width() - self.grid_size * self.tile_size) // 2
+        
+        # Calculate tile size based on screen dimensions
+        screen_width = self.screen.get_width()
+        screen_height = self.screen.get_height()
+        
+        # Use the smaller screen dimension to ensure squares fit
+        usable_height = screen_height - 200  # Account for UI elements (top and bottom margins)
+        max_tile_width = screen_width // (self.grid_size + 1)  # Add padding
+        max_tile_height = usable_height // (self.grid_size + 1)
+        
+        # Use the smaller of the two to maintain square tiles
+        self.tile_size = min(max_tile_width, max_tile_height)
+        
+        # Calculate margins to center the grid
+        self.margin_x = (screen_width - (self.grid_size * self.tile_size)) // 2
+        self.margin_y = ((screen_height - (self.grid_size * self.tile_size)) // 2) + 80  # Increased offset for larger header
         
         # Get colors for current level
         colors = self.COLORS[self.state.level]
         
         if self.state.level == 1:
-            needed_pairs = (self.grid_size * self.grid_size) // 2  # 8 pairs for 4x4
-            # Create pairs of colors
+            needed_pairs = (self.grid_size * self.grid_size) // 2
             color_pairs = []
             for i in range(needed_pairs):
-                color_pairs.extend([colors[i], colors[i]])  # Add each color twice
+                color_pairs.extend([colors[i], colors[i]])
         else:
-            # For level 2, we need 12 pairs (24 tiles) for the donut shape
             color_pairs = []
-            for i in range(12):  # 12 pairs for 5x5 donut
+            for i in range(12):
                 color_pairs.extend([colors[i], colors[i]])
         
         random.shuffle(color_pairs)
         
-        # Create tiles
+        # Create tiles with new positioning
         self.tiles.clear()
         color_index = 0
         
@@ -184,14 +197,13 @@ class ScienceGame:
                     continue
                     
                 rect = pygame.Rect(
-                    self.margin + col * self.tile_size,
-                    120 + row * self.tile_size,
+                    self.margin_x + col * self.tile_size,
+                    self.margin_y + row * self.tile_size,
                     self.tile_size - 10,
                     self.tile_size - 10
                 )
                 self.tiles[(row, col)] = Tile(color_pairs[color_index], rect)
                 color_index += 1
-
     def start_next_level(self) -> None:
         self.state.level += 1
         self.state.matches_found = 0
@@ -216,14 +228,14 @@ class ScienceGame:
         self.screen.blit(msg2, (screen_center_x - msg2.get_width() // 2, 320))
         pygame.display.flip()  # Make sure the transition screen is displayed
 
-    # new method made
+    # Also replace the handle_click method
     def handle_click(self, pos: Tuple[int, int], current_time: float) -> None:
         if self.waiting_for_reset or self.transition_active:
             return
 
         x, y = pos
-        row = (y - 120) // self.tile_size
-        col = (x - self.margin) // self.tile_size
+        row = (y - self.margin_y) // self.tile_size
+        col = (x - self.margin_x) // self.tile_size
         
         # Skip if clicked position is not valid or is the center hole in level 2
         if not (0 <= row < self.grid_size and 0 <= col < self.grid_size) or \
@@ -282,87 +294,115 @@ class ScienceGame:
     def draw_laboratory_ui(self) -> None:
         self.screen.fill(self.background_color)
         
+        # Draw particles
         for particle in self.particles:
             pygame.draw.circle(self.screen, (int(particle[4]),) * 3, 
-                             (int(particle[0]), int(particle[1])), int(particle[5]))
+                            (int(particle[0]), int(particle[1])), int(particle[5]))
 
-        pygame.draw.rect(self.screen, (30, 40, 50), (0, 0, self.screen.get_width(), 100))
-        pygame.draw.line(self.screen, (50, 150, 200), (0, 100), (self.screen.get_width(), 100), 2)
+        # Create larger header area
+        header_height = 120
+        pygame.draw.rect(self.screen, (30, 40, 50), (0, 0, self.screen.get_width(), header_height))
+        pygame.draw.line(self.screen, (50, 150, 200), (0, header_height), 
+                        (self.screen.get_width(), header_height), 3)
         
-        self.exit_button.draw(self.screen)
-
-
+        # Create fonts for stats - reduced from 72 to 56
+        stats_font = pygame.font.Font(None, 56)
+        
+        # Define stats with spacing
         stats = [
-            f"TIME: {self.state.game_time:.1f}s",
             f"LEVEL: {self.state.level}",
+            f"TIME: {self.state.game_time:.1f}s",
             f"SCORE: {self.state.score}"
         ]
         
-        for i, text in enumerate(stats):
-            surface = self.font.render(text, True, (100, 200, 255))
-            self.screen.blit(surface, (20 + i * 270, 40))
-
-        msg_surface = self.font.render(self.state.message, True, (255, 255, 255))
-        self.screen.blit(msg_surface, 
-                        ((self.screen.get_width() - msg_surface.get_width()) // 2, 
-                         self.screen.get_height() - 40))
-
-    def draw_tile(self, tile: Tile) -> None:
-        if tile.is_flipping:
-            scale = abs(math.cos(tile.flip_progress * math.pi))
-            scaled_width = tile.rect.width * scale
-            x_offset = (tile.rect.width - scaled_width) / 2
-            scaled_rect = pygame.Rect(
-                tile.rect.x + x_offset,
-                tile.rect.y,
-                scaled_width,
-                tile.rect.height
-            )
-            color = tile.color if tile.flip_progress >= 0.5 else (60, 80, 100)
-            pygame.draw.rect(self.screen, color, scaled_rect, border_radius=20)
-            
-            if scale > 0.1:
-                center = scaled_rect.center
-                if tile.flip_progress >= 0.5:
-                    for radius in (15, 30):
-                        pygame.draw.circle(self.screen, (255, 255, 255, 128), 
-                                        center, int(radius * scale), 1)
-                else:
-                    for offset in range(0, 31, 15):
-                        pygame.draw.circle(self.screen, (100, 150, 200),
-                                        center, int(offset * scale), 1)
-        else:
-            if tile.revealed:
-                pygame.draw.rect(self.screen, tile.color, tile.rect, border_radius=20)
-                for radius in (15, 30):
-                    pygame.draw.circle(self.screen, (255, 255, 255, 128), 
-                                    tile.rect.center, radius, 1)
-            else:
-                pygame.draw.rect(self.screen, (60, 80, 100), tile.rect, border_radius=20)
-                pygame.draw.rect(self.screen, (80, 100, 120), tile.rect, 2, border_radius=20)
-                for offset in range(0, 31, 15):
-                    pygame.draw.circle(self.screen, (100, 150, 200),
-                                    tile.rect.center, offset, 1)
-
-    def draw_start_screen(self) -> None:
-        self.screen.fill(self.background_color)
+        # Calculate total width of all stats
+        total_width = 0
+        stat_surfaces = []
+        for text in stats:
+            surface = stats_font.render(text, True, (100, 200, 255))
+            stat_surfaces.append(surface)
+            total_width += surface.get_width()
         
-        for particle in self.particles:
-            pygame.draw.circle(self.screen, (int(particle[4]),) * 3, 
-                             (int(particle[0]), int(particle[1])), int(particle[5]))
-            
+        # Increased spacing between stats from 50 to 100
+        spacing = 100
+        total_width += spacing * (len(stats) - 1)
+        
+        # Calculate starting x position to center all stats
+        start_x = (self.screen.get_width() - total_width) // 2
+        current_x = start_x
+        
+        # Draw centered stats
+        for surface in stat_surfaces:
+            self.screen.blit(surface, (current_x, header_height // 2 - surface.get_height() // 2))
+            current_x += surface.get_width() + spacing
+
+        # Update exit button position and size
+        self.exit_button.rect = pygame.Rect(self.screen.get_width() - 80, 20, 60, 60)
+        self.exit_button.font = pygame.font.Font(None, 48)  # Larger font for exit button
         self.exit_button.draw(self.screen)
 
-        title_text = self.title_font.render("Epic Memory Match!", True, (255, 255, 255))
-        title_rect = title_text.get_rect(center=(self.screen.get_width() // 2, 200))
-        self.screen.blit(title_text, title_rect)
+        # Draw message at bottom with larger font
+        message_font = pygame.font.Font(None, 48)  # Increased font size for message
+        msg_surface = message_font.render(self.state.message, True, (255, 255, 255))
+        self.screen.blit(msg_surface, 
+                        ((self.screen.get_width() - msg_surface.get_width()) // 2, 
+                        self.screen.get_height() - 60))
 
-        self.start_button.draw(self.screen)
-        self.quit_button.draw(self.screen)
+    def draw_tile(self, tile: Tile) -> None:
+                if tile.is_flipping:
+                    scale = abs(math.cos(tile.flip_progress * math.pi))
+                    scaled_width = tile.rect.width * scale
+                    x_offset = (tile.rect.width - scaled_width) / 2
+                    scaled_rect = pygame.Rect(
+                        tile.rect.x + x_offset,
+                        tile.rect.y,
+                        scaled_width,
+                        tile.rect.height
+                    )
+                    color = tile.color if tile.flip_progress >= 0.5 else (60, 80, 100)
+                    pygame.draw.rect(self.screen, color, scaled_rect, border_radius=20)
+                    
+                    if scale > 0.1:
+                        center = scaled_rect.center
+                        if tile.flip_progress >= 0.5:
+                            for radius in (15, 30):
+                                pygame.draw.circle(self.screen, (255, 255, 255, 128), 
+                                                center, int(radius * scale), 1)
+                        else:
+                            for offset in range(0, 31, 15):
+                                pygame.draw.circle(self.screen, (100, 150, 200),
+                                                center, int(offset * scale), 1)
+                else:
+                    if tile.revealed:
+                        pygame.draw.rect(self.screen, tile.color, tile.rect, border_radius=20)
+                        for radius in (15, 30):
+                            pygame.draw.circle(self.screen, (255, 255, 255, 128), 
+                                            tile.rect.center, radius, 1)
+                    else:
+                        pygame.draw.rect(self.screen, (60, 80, 100), tile.rect, border_radius=20)
+                        pygame.draw.rect(self.screen, (80, 100, 120), tile.rect, 2, border_radius=20)
+                        for offset in range(0, 31, 15):
+                            pygame.draw.circle(self.screen, (100, 150, 200),
+                                            tile.rect.center, offset, 1)
 
+    def draw_start_screen(self) -> None:
+            self.screen.fill(self.background_color)
+            
+            for particle in self.particles:
+                pygame.draw.circle(self.screen, (int(particle[4]),) * 3, 
+                                (int(particle[0]), int(particle[1])), int(particle[5]))
+                
+            self.exit_button.draw(self.screen)
+
+            title_text = self.title_font.render("Epic Memory Match!", True, (255, 255, 255))
+            title_rect = title_text.get_rect(center=(self.screen.get_width() // 2, 200))
+            self.screen.blit(title_text, title_rect)
+
+            self.start_button.draw(self.screen)
+            self.quit_button.draw(self.screen)
+        
     def run(self) -> None:
         clock = pygame.time.Clock()
-        
         while True:
             current_time = time.time()
             
@@ -431,7 +471,7 @@ class ScienceGame:
                             if self.state.level == 1:
                                 self.show_transition_screen(
                                     "EXPERIMENT 1 COMPLETE!",
-                                    "Preparing Level 2... More complex molecules ahead!"
+                                    "Preparing Level 2... More complex level ahead!"
                                 )
                             else:
                                 self.show_transition_screen(
