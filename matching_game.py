@@ -9,9 +9,11 @@ from typing import Tuple, Optional, Set, List, Dict
 class GameState:
     level: int = 1
     score: int = 0
+    high_score: int = 0  # Add high score tracking
     matches_found: int = 0
     selected_tile: Optional[Tuple[int, int]] = None
     game_time: float = 0
+    best_time: float = float('inf')  # Add best time tracking
     message: str = "Little Scientists: Matching Adventure Quest!"
     matched_pairs: Set[Tuple[int, int]] = field(default_factory=set)
     game_complete: bool = False
@@ -209,24 +211,10 @@ class ScienceGame:
         self.state.matches_found = 0
         self.state.matched_pairs.clear()
         self.state.selected_tile = None
-        self.state.message = f"Starting Level {self.state.level}! More complex level ahead!"
+        self.state.message = f"Starting Level {self.state.level}!"
         self.setup_level()
         self.transition_active = False
         self.transition_start_time = 0
-
-    def show_transition_screen(self, text1: str, text2: str) -> None:
-        overlay = pygame.Surface(self.screen.get_size())
-        overlay.set_alpha(200)
-        overlay.fill((20, 30, 40))
-        
-        msg1 = self.title_font.render(text1, True, (100, 200, 255))
-        msg2 = self.font.render(text2, True, (255, 255, 255))
-        
-        self.screen.blit(overlay, (0, 0))
-        screen_center_x = self.screen.get_width() // 2
-        self.screen.blit(msg1, (screen_center_x - msg1.get_width() // 2, 250))
-        self.screen.blit(msg2, (screen_center_x - msg2.get_width() // 2, 320))
-        pygame.display.flip()  # Make sure the transition screen is displayed
 
     # Also replace the handle_click method
     def handle_click(self, pos: Tuple[int, int], current_time: float) -> None:
@@ -385,6 +373,63 @@ class ScienceGame:
                             pygame.draw.circle(self.screen, (100, 150, 200),
                                             tile.rect.center, offset, 1)
 
+    
+    def reset_game(self) -> None:
+        # Update high score before resetting
+        if self.state.score > self.state.high_score:
+            self.state.high_score = self.state.score
+        # Update best time if game was completed
+        if self.state.game_complete and self.state.game_time < self.state.best_time:
+            self.state.best_time = self.state.game_time
+        
+        # Reset game state
+        self.state = GameState(high_score=self.state.high_score, best_time=self.state.best_time)
+        self.tiles.clear()
+        self.setup_level()
+        self.game_started = False
+        self.countdown_start = 0
+        self.transition_active = False
+        self.transition_start_time = 0
+        self.waiting_for_reset = False
+
+    def show_transition_screen(self, text1: str, text2: str) -> None:
+        overlay = pygame.Surface(self.screen.get_size())
+        overlay.set_alpha(200)
+        overlay.fill((20, 30, 40))
+        
+        msg1 = self.title_font.render(text1, True, (100, 200, 255))
+        msg2 = self.font.render(text2, True, (255, 255, 255))
+        
+        screen_center_x = self.screen.get_width() // 2
+        
+        # Only show score and play again button after level 2
+        if self.state.level == 2:
+            # Create larger font for score display
+            score_font = pygame.font.Font(None, 92)  # Larger font for final score
+            stats_font = pygame.font.Font(None, 48)  # Regular font for other stats
+            
+            score_text = score_font.render(f"Final Score: {self.state.score}", True, (255, 255, 255))
+            time_text = stats_font.render(f"Time: {self.state.game_time:.1f}s", True, (255, 255, 255))
+            high_score_text = stats_font.render(f"High Score: {self.state.high_score}", True, (255, 255, 255))
+            
+            # Position play again button with more spacing
+            self.play_again_button = Button("Play Again", 
+                                          pygame.Rect(screen_center_x - 100, 500, 200, 50),
+                                          (0, 200, 0), (0, 255, 0))
+        
+        self.screen.blit(overlay, (0, 0))
+        self.screen.blit(msg1, (screen_center_x - msg1.get_width() // 2, 150))  # Moved up
+        self.screen.blit(msg2, (screen_center_x - msg2.get_width() // 2, 220))  # Moved up
+        
+        if self.state.level == 2:
+            # Better spacing between elements
+            self.screen.blit(score_text, (screen_center_x - score_text.get_width() // 2, 300))
+            self.screen.blit(time_text, (screen_center_x - time_text.get_width() // 2, 400))
+            self.screen.blit(high_score_text, (screen_center_x - high_score_text.get_width() // 2, 450))
+            self.play_again_button.draw(self.screen)
+        
+        pygame.display.flip()
+    
     def draw_start_screen(self) -> None:
             self.screen.fill(self.background_color)
             
@@ -410,19 +455,17 @@ class ScienceGame:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     return
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        pygame.quit()
-                        return
-                    elif event.key == pygame.K_f:
-                        self.fullscreen = not self.fullscreen
-                        self.screen = self.set_screen_mode()
-                        self.setup_level()
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if self.exit_button.rect.collidepoint(event.pos):
                         pygame.quit()
                         return
-                        
+                    
+                    # Only check for play again button in level 2
+                    if self.transition_active and self.state.level == 2 and hasattr(self, 'play_again_button'):
+                        if self.play_again_button.is_clicked(event.pos):
+                            self.reset_game()
+                            continue
+                            
                     if not self.game_started:
                         if self.start_button.is_clicked(event.pos):
                             self.game_started = True
@@ -452,7 +495,7 @@ class ScienceGame:
                     )
                     self.screen.blit(countdown_text, countdown_rect)
                 else:
-                    if not self.state.game_active:  # First frame after countdown
+                    if not self.state.game_active:
                         self.state.game_active = True
                         self.state.game_time = 0
                     
@@ -461,9 +504,11 @@ class ScienceGame:
                     
                     self.update_tiles(current_time)
                     self.update_particles()
+                    
+                    # Calculate required matches before checking completion
+                    required_matches = (self.grid_size * self.grid_size) // 2
 
                     # Handle level completion and transitions
-                    required_matches = (self.grid_size * self.grid_size) // 2
                     if self.state.matches_found == required_matches:
                         if not self.transition_active:
                             self.transition_active = True
@@ -478,19 +523,14 @@ class ScienceGame:
                                     "CONGRATULATIONS! ALL EXPERIMENTS COMPLETE!",
                                     f"Final Score: {self.state.score} - Time: {self.state.game_time:.1f}s"
                                 )
-                                time.sleep(2)  # Show final screen for 2 seconds
-                                pygame.quit()
-                                return
 
-                        if current_time - self.transition_start_time >= 2:  # Wait 2 seconds before proceeding
+                        if current_time - self.transition_start_time >= 2:
                             if self.state.level == 1:
                                 self.start_next_level()
                             else:
                                 self.state.game_complete = True
-                                pygame.quit()
-                                return
 
-                    # Only draw game if not in transition
+                    # Continue drawing the game
                     if not self.transition_active:
                         self.draw_laboratory_ui()
                         for tile in self.tiles.values():
