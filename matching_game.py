@@ -14,7 +14,7 @@ class GameState:
     selected_tile: Optional[Tuple[int, int]] = None
     game_time: float = 0
     best_time: float = float('inf')  # Add best time tracking
-    message: str = "Little Scientists: Matching Adventure Quest!"
+    message: str = "Matching Adventure Quest!"
     matched_pairs: Set[Tuple[int, int]] = field(default_factory=set)
     game_complete: bool = False
     game_active: bool = False
@@ -123,14 +123,15 @@ class ScienceGame:
         self.background_color = (20, 30, 40)
         
         screen_center_x = self.screen.get_width() // 2
-        self.start_button = Button("Start", pygame.Rect(screen_center_x - 100, 400, 200, 50), 
-                                 (0, 200, 0), (0, 255, 0))
-        self.quit_button = Button("Quit", pygame.Rect(screen_center_x - 100, 470, 200, 50), 
-                                 (200, 0, 0), (255, 0, 0))
+        self.start_button = Button("Let's Play!", 
+                                 pygame.Rect(screen_center_x - 100, 400, 200, 50),
+                                 (38, 188, 81), (98, 208, 121))  # Happy green
+        self.quit_button = Button("Exit Game", 
+                                pygame.Rect(screen_center_x - 100, 470, 200, 50),
+                                (255, 89, 94), (255, 129, 134))  # Friendly red
         self.exit_button = Button("X", 
                                 pygame.Rect(self.screen.get_width() - 50, 10, 40, 40),
-                                (200, 0, 0),
-                                (255, 0, 0))
+                                (255, 89, 94), (255, 129, 134))
         
         self.game_started = False
         self.countdown_start = 0
@@ -280,61 +281,67 @@ class ScienceGame:
                 particle[4] = random.randint(150, 255)
 
     def draw_laboratory_ui(self) -> None:
-        self.screen.fill(self.background_color)
+        self.screen.fill((15, 23, 42))
+        
+        header_height = 120
+        pygame.draw.rect(self.screen, (0, 0, 0), (0, 0, self.screen.get_width(), header_height))
+        pygame.draw.line(self.screen, (94, 180, 251), (0, header_height), 
+                        (self.screen.get_width(), header_height), 3)
         
         # Draw particles
         for particle in self.particles:
             pygame.draw.circle(self.screen, (int(particle[4]),) * 3, 
                             (int(particle[0]), int(particle[1])), int(particle[5]))
 
-        # Create larger header area
-        header_height = 120
-        pygame.draw.rect(self.screen, (30, 40, 50), (0, 0, self.screen.get_width(), header_height))
-        pygame.draw.line(self.screen, (50, 150, 200), (0, header_height), 
-                        (self.screen.get_width(), header_height), 3)
-        
-        # Create fonts for stats - reduced from 72 to 56
+        # More colorful stats
         stats_font = pygame.font.Font(None, 56)
-        
-        # Define stats with spacing
         stats = [
-            f"LEVEL: {self.state.level}",
-            f"TIME: {self.state.game_time:.1f}s",
-            f"SCORE: {self.state.score}"
+            ("LEVEL " + str(self.state.level), (255, 129, 134)),  # Friendly red
+            ("TIME: " + f"{self.state.game_time:.1f}s", (38, 188, 81)),  # Green
+            ("SCORE: " + str(self.state.score), (94, 180, 251))  # Blue
         ]
         
-        # Calculate total width of all stats
         total_width = 0
         stat_surfaces = []
-        for text in stats:
-            surface = stats_font.render(text, True, (100, 200, 255))
+        for text, color in stats:
+            surface = stats_font.render(text, True, color)
             stat_surfaces.append(surface)
             total_width += surface.get_width()
         
-        # Increased spacing between stats from 50 to 100
         spacing = 100
         total_width += spacing * (len(stats) - 1)
-        
-        # Calculate starting x position to center all stats
         start_x = (self.screen.get_width() - total_width) // 2
         current_x = start_x
         
-        # Draw centered stats
-        for surface in stat_surfaces:
+        # Draw stats with shadows for fun effect
+        for i, surface in enumerate(stat_surfaces):
+            # Draw shadow
+            shadow_surface = stats_font.render(stats[i][0], True, (180, 180, 180))
+            self.screen.blit(shadow_surface, (current_x + 2, header_height // 2 - surface.get_height() // 2 + 2))
+            # Draw text
             self.screen.blit(surface, (current_x, header_height // 2 - surface.get_height() // 2))
             current_x += surface.get_width() + spacing
 
         # Update exit button position and size
         self.exit_button.rect = pygame.Rect(self.screen.get_width() - 80, 20, 60, 60)
-        self.exit_button.font = pygame.font.Font(None, 48)  # Larger font for exit button
+        self.exit_button.font = pygame.font.Font(None, 48)
         self.exit_button.draw(self.screen)
 
         # Draw message at bottom with larger font
-        message_font = pygame.font.Font(None, 48)  # Increased font size for message
-        msg_surface = message_font.render(self.state.message, True, (255, 255, 255))
-        self.screen.blit(msg_surface, 
-                        ((self.screen.get_width() - msg_surface.get_width()) // 2, 
-                        self.screen.get_height() - 60))
+            # Draw message at bottom with larger font and shadow
+        message_font = pygame.font.Font(None, 48)
+    # Shadow
+        shadow_surface = message_font.render(self.state.message, True, (20, 30, 40))
+        shadow_rect = shadow_surface.get_rect(
+        center=(self.screen.get_width() // 2 + 2, self.screen.get_height() - 58)
+    )
+        self.screen.blit(shadow_surface, shadow_rect)
+    # Main text
+        msg_surface = message_font.render(self.state.message, True, (94, 180, 251))
+        msg_rect = msg_surface.get_rect(
+        center=(self.screen.get_width() // 2, self.screen.get_height() - 60)
+    )
+        self.screen.blit(msg_surface, msg_rect)
 
     def draw_tile(self, tile: Tile) -> None:
                 if tile.is_flipping:
@@ -439,7 +446,7 @@ class ScienceGame:
                 
             self.exit_button.draw(self.screen)
 
-            title_text = self.title_font.render("Epic Memory Match!", True, (255, 255, 255))
+            title_text = self.title_font.render("Matching Adventure!", True, (255, 255, 255))
             title_rect = title_text.get_rect(center=(self.screen.get_width() // 2, 200))
             self.screen.blit(title_text, title_rect)
 
@@ -516,11 +523,12 @@ class ScienceGame:
                             if self.state.level == 1:
                                 self.show_transition_screen(
                                     "EXPERIMENT 1 COMPLETE!",
-                                    "Preparing Level 2... More complex level ahead!"
+                                    "Preparing Level 2... Harder level up ahead!"
+
                                 )
                             else:
                                 self.show_transition_screen(
-                                    "CONGRATULATIONS! ALL EXPERIMENTS COMPLETE!",
+                                    "CONGRATULATIONS! ALL LEVELS COMPLETE!",
                                     f"Final Score: {self.state.score} - Time: {self.state.game_time:.1f}s"
                                 )
 
