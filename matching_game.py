@@ -67,37 +67,35 @@ class Button:
         return self.rect.collidepoint(pos)
 
 class ScienceGame:
-    # Level 1: 4x4 grid (8 pairs needed)
-    # Level 2: 5x5 grid (12 pairs needed)
     COLORS = {
-        1: [  # Level 1 colors (8 pairs)
-            (230, 25, 75),    # Red
-            (60, 180, 75),    # Green
-            (255, 225, 25),   # Yellow
-            (0, 130, 200),    # Blue
-            (245, 130, 48),   # Orange
-            (145, 30, 180),   # Purple
-            (70, 240, 240),   # Cyan
-            (240, 50, 230),   # Magenta
+        1: [  # Level 1 colors (8 pairs) - All very distinct
+            (255, 67, 89),    # Bright Red
+            (39, 174, 96),    # Forest Green
+            (241, 196, 15),   # Golden Yellow
+            (41, 128, 185),   # Ocean Blue
+            (243, 156, 18),   # Deep Orange
+            (142, 68, 173),   # Deep Purple
+            (0, 184, 148),    # Dark Turquoise
+            (238, 82, 177),   # Hot Pink
         ],
-        2: [  # Level 2 colors (12 pairs)
-            (230, 25, 75),    # Red
-            (60, 180, 75),    # Green
-            (255, 225, 25),   # Yellow
-            (0, 130, 200),    # Blue
-            (245, 130, 48),   # Orange
-            (145, 30, 180),   # Purple
-            (70, 240, 240),   # Cyan
-            (240, 50, 230),   # Magenta
-            (210, 245, 60),   # Lime
-            (250, 190, 212),  # Pink
-            (0, 128, 128),    # Teal
-            (220, 190, 255),  # Lavender
+        2: [  # Level 2 colors (12 pairs) - Adding more distinct colors
+            (255, 67, 89),    # Bright Red
+            (39, 174, 96),    # Forest Green
+            (241, 196, 15),   # Golden Yellow
+            (41, 128, 185),   # Ocean Blue
+            (243, 156, 18),   # Deep Orange
+            (142, 68, 173),   # Deep Purple
+            (0, 184, 148),    # Dark Turquoise
+            (238, 82, 177),   # Hot Pink
+            (46, 64, 89),     # Navy Blue
+            (108, 52, 131),   # Dark Purple
+            (6, 82, 221),     # Electric Blue
+            (131, 52, 113),   # Burgundy
         ]
     }
 
     SCIENCE_MESSAGES = [
-        "Excellent observation!",
+        "Excellent observation!",   
         "Data match found!",
         "Scientific success!",
         "Discovery made!",
@@ -124,11 +122,11 @@ class ScienceGame:
         
         screen_center_x = self.screen.get_width() // 2
         self.start_button = Button("Let's Play!", 
-                                 pygame.Rect(screen_center_x - 100, 400, 200, 50),
-                                 (38, 188, 81), (98, 208, 121))  # Happy green
+                                 pygame.Rect(screen_center_x - 150, 400, 300, 70),  # Increased from 200,50 to 300,70
+                                 (38, 188, 81), (98, 208, 121))
         self.quit_button = Button("Exit Game", 
-                                pygame.Rect(screen_center_x - 100, 470, 200, 50),
-                                (255, 89, 94), (255, 129, 134))  # Friendly red
+                                pygame.Rect(screen_center_x - 150, 490, 300, 70),  # Increased from 200,50 to 300,70
+                                (255, 89, 94), (255, 129, 134))
         self.exit_button = Button("X", 
                                 pygame.Rect(self.screen.get_width() - 50, 10, 40, 40),
                                 (255, 89, 94), (255, 129, 134))
@@ -421,7 +419,7 @@ class ScienceGame:
             
             # Position play again button with more spacing
             self.play_again_button = Button("Play Again", 
-                                          pygame.Rect(screen_center_x - 100, 500, 200, 50),
+                                          pygame.Rect(screen_center_x - 150, 500, 300, 70),  # Increased from 200,50 to 300,70
                                           (0, 200, 0), (0, 255, 0))
         
         self.screen.blit(overlay, (0, 0))
