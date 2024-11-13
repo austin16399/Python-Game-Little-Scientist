@@ -398,59 +398,87 @@ class ScienceGame:
         self.waiting_for_reset = False
 
     def show_transition_screen(self, text1: str, text2: str) -> None:
+        # Create a darker overlay for better visibility
         overlay = pygame.Surface(self.screen.get_size())
-        overlay.set_alpha(200)
-        overlay.fill((20, 30, 40))
-        
-        msg1 = self.title_font.render(text1, True, (100, 200, 255))
-        msg2 = self.font.render(text2, True, (255, 255, 255))
+        overlay.set_alpha(250)  # Increased opacity TEST HERE
+        overlay.fill((10, 20, 30))  # Darker background
+        self.screen.blit(overlay, (0, 0))
         
         screen_center_x = self.screen.get_width() // 2
+        screen_center_y = self.screen.get_height() // 2
         
-        # Only show score and play again button after level 2
+        # Only show final screen after level 2
         if self.state.level == 2:
-            # Create larger font for score display
-            score_font = pygame.font.Font(None, 92)  # Larger font for final score
-            stats_font = pygame.font.Font(None, 48)  # Regular font for other stats
+            # Create different font sizes
+            title_font = pygame.font.Font(None, 84)  # Larger font for main title
+            score_font = pygame.font.Font(None, 72)  # Font for score and time
             
+            # Render congratulations text
+            congrats = title_font.render("CONGRATULATIONS!", True, (255, 215, 0))  # Golden color
+            complete = title_font.render("ALL LEVELS COMPLETE!", True, (255, 215, 0))
+            
+            # Position congratulations text
+            self.screen.blit(congrats, (screen_center_x - congrats.get_width() // 2, 120))
+            self.screen.blit(complete, (screen_center_x - complete.get_width() // 2, 200))
+            
+            # Create and draw rectangles for score and time
             score_text = score_font.render(f"Final Score: {self.state.score}", True, (255, 255, 255))
-            time_text = stats_font.render(f"Time: {self.state.game_time:.1f}s", True, (255, 255, 255))
-            high_score_text = stats_font.render(f"High Score: {self.state.high_score}", True, (255, 255, 255))
+            time_text = score_font.render(f"Time: {self.state.game_time:.1f}s", True, (255, 255, 255))
             
-            # Position play again button with more spacing
-            self.play_again_button = Button("Play Again", 
-                                          pygame.Rect(screen_center_x - 150, 500, 300, 70),  # Increased from 200,50 to 300,70
-                                          (0, 200, 0), (0, 255, 0))
-        
-        self.screen.blit(overlay, (0, 0))
-        self.screen.blit(msg1, (screen_center_x - msg1.get_width() // 2, 150))  # Moved up
-        self.screen.blit(msg2, (screen_center_x - msg2.get_width() // 2, 220))  # Moved up
-        
-        if self.state.level == 2:
-            # Better spacing between elements
-            self.screen.blit(score_text, (screen_center_x - score_text.get_width() // 2, 300))
-            self.screen.blit(time_text, (screen_center_x - time_text.get_width() // 2, 400))
-            self.screen.blit(high_score_text, (screen_center_x - high_score_text.get_width() // 2, 450))
+            # Score rectangle
+            score_rect = pygame.Rect(
+                screen_center_x - 250,  # Wider rectangle
+                screen_center_y - 50,
+                500,  # Fixed width
+                80   # Fixed height
+            )
+            pygame.draw.rect(self.screen, (30, 60, 90), score_rect, border_radius=10)
+            pygame.draw.rect(self.screen, (94, 180, 251), score_rect, 3, border_radius=10)  # Blue border
+            self.screen.blit(score_text, (score_rect.centerx - score_text.get_width() // 2, score_rect.centery - score_text.get_height() // 2))
+            
+            # Time rectangle
+            time_rect = pygame.Rect(
+                screen_center_x - 250,
+                screen_center_y + 50,
+                500,
+                80
+            )
+            pygame.draw.rect(self.screen, (30, 60, 90), time_rect, border_radius=10)
+            pygame.draw.rect(self.screen, (94, 180, 251), time_rect, 3, border_radius=10)  # Blue border
+            self.screen.blit(time_text, (time_rect.centerx - time_text.get_width() // 2, time_rect.centery - time_text.get_height() // 2))
+            
+            # Create larger play again button with glowing effect
+            self.play_again_button = Button(
+                "Play Again",
+                pygame.Rect(screen_center_x - 200, screen_center_y + 180, 400, 100),  # Larger button
+                (38, 188, 81),  # Green color
+                (98, 208, 121)  # Lighter green for hover
+            )
+            self.play_again_button.font = pygame.font.Font(None, 72)  # Larger font for button
             self.play_again_button.draw(self.screen)
-        
-        pygame.display.flip()
-    
+        else:
+            # Level 1 completion screen remains the same
+            msg1 = self.title_font.render(text1, True, (100, 200, 255))
+            msg2 = self.font.render(text2, True, (255, 255, 255))
+            self.screen.blit(msg1, (screen_center_x - msg1.get_width() // 2, 150))
+            self.screen.blit(msg2, (screen_center_x - msg2.get_width() // 2, 220))
+
     def draw_start_screen(self) -> None:
-            self.screen.fill(self.background_color)
-            
-            for particle in self.particles:
-                pygame.draw.circle(self.screen, (int(particle[4]),) * 3, 
-                                (int(particle[0]), int(particle[1])), int(particle[5]))
-                
-            self.exit_button.draw(self.screen)
-
-            title_text = self.title_font.render("Matching Adventure!", True, (255, 255, 255))
-            title_rect = title_text.get_rect(center=(self.screen.get_width() // 2, 200))
-            self.screen.blit(title_text, title_rect)
-
-            self.start_button.draw(self.screen)
-            self.quit_button.draw(self.screen)
+        self.screen.fill(self.background_color)
         
+        for particle in self.particles:
+            pygame.draw.circle(self.screen, (int(particle[4]),) * 3, 
+                            (int(particle[0]), int(particle[1])), int(particle[5]))
+            
+        self.exit_button.draw(self.screen)
+
+        title_text = self.title_font.render("Matching Adventure!", True, (255, 255, 255))
+        title_rect = title_text.get_rect(center=(self.screen.get_width() // 2, 200))
+        self.screen.blit(title_text, title_rect)
+
+        self.start_button.draw(self.screen)
+        self.quit_button.draw(self.screen)
+    
     def run(self) -> None:
         clock = pygame.time.Clock()
         while True:
