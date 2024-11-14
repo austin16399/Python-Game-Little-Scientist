@@ -81,16 +81,16 @@ class ScienceGame:
         2: [  # Level 2 colors (12 pairs) - Adding more distinct colors
             (225, 0, 0),    # Bright Red           - fixed
             (2, 106, 30),    # Forest Green        - fixed
-            (241, 196, 15),   # Golden Yellow 
-            (123, 184, 185),   # dirty Blue         - fixed
+            (241, 196, 15),   # Golden Yellow      - good
+            (120, 105, 78),   # dirty Blue         - fixed
             (255, 131, 0),   # Deep Orange        - fixed
             (138, 0, 223),   # Deep Purple          - fixed
-            (0, 184, 148),    # Dark Blue
+            (0, 184, 148),    # Dark Blue           - good
             (228, 1, 218),   # Hot Pink          - fix 
             (205, 128, 128),     # light red           - fixed
             (186, 122, 250),   # light Purple         - fixed
             (6, 82, 221),     # Electric Blue       - good
-            (131, 52, 113),   # Burgundy
+            (161, 161, 161),   # grey
         ]
     }
 
