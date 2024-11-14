@@ -70,13 +70,13 @@ class ScienceGame:
     COLORS = {
         1: [  # Level 1 colors (8 pairs) - All very distinct
             (255, 67, 89),    # Bright Red
-            (39, 174, 96),    # Forest Green
+            (1, 109, 48),    # Forest Green - changed
             (241, 196, 15),   # Golden Yellow
-            (41, 128, 185),   # Ocean Blue
-            (243, 156, 18),   # Deep Orange
-            (142, 68, 173),   # Deep Purple
-            (0, 184, 148),    # Dark Turquoise
-            (238, 82, 177),   # Hot Pink
+            (41, 128, 185),   # Ocean Blue - changed 
+            (220, 116, 0),   # Deep Orange - changed
+            (142, 68, 173),   # Deep Purple 
+            (0, 184, 148),    # Dark blue - changed
+            (255, 0, 158),    #  Pink - changed
         ],
         2: [  # Level 2 colors (12 pairs) - Adding more distinct colors
             (255, 67, 89),    # Bright Red
