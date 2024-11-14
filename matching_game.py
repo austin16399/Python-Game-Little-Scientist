@@ -69,27 +69,27 @@ class Button:
 class ScienceGame:
     COLORS = {
         1: [  # Level 1 colors (8 pairs) - All very distinct
-            (255, 67, 89),    # Bright Red
-            (1, 109, 48),    # Forest Green - changed
+            (225, 0, 0),    #  Red                  -fixed
+            (2, 106, 30),    # Forest Green         -fixed
             (241, 196, 15),   # Golden Yellow
-            (41, 128, 185),   # Ocean Blue -  
-            (220, 116, 0),   # Deep Orange - changed
-            (142, 68, 173),   # Deep Purple 
-            (0, 184, 148),    # Dark blue - 
-            (255, 0, 158),    #  Pink - needs change
+            (23, 0, 255),   # dark Blue             - fixed  
+            (255, 131, 0),   # Deep Orange          -fixed
+            (138, 0, 223),   # Deep Purple          -fixed
+            (0, 184, 148),    # greenish blue 
+            (255, 119, 234),    # Pink             -fixed
         ],
         2: [  # Level 2 colors (12 pairs) - Adding more distinct colors
-            (255, 67, 89),    # Bright Red
-            (39, 174, 96),    # Forest Green
-            (241, 196, 15),   # Golden Yellow - change
-            (41, 128, 185),   # Ocean Blue
-            (243, 156, 18),   # Deep Orange - needs change
-            (142, 68, 173),   # Deep Purple
-            (0, 184, 148),    # Dark Turquoise
-            (238, 82, 177),   # Hot Pink
-            (46, 64, 89),     # Navy Blue
-            (108, 52, 131),   # Dark Purple - needs change
-            (6, 82, 221),     # Electric Blue
+            (225, 0, 0),    # Bright Red           - fixed
+            (2, 106, 30),    # Forest Green        - fixed
+            (241, 196, 15),   # Golden Yellow 
+            (123, 184, 185),   # dirty Blue         - fixed
+            (255, 131, 0),   # Deep Orange        - fixed
+            (138, 0, 223),   # Deep Purple          - fixed
+            (0, 184, 148),    # Dark Blue
+            (228, 1, 218),   # Hot Pink          - fix 
+            (205, 128, 128),     # light red           - fixed
+            (186, 122, 250),   # light Purple         - fixed
+            (6, 82, 221),     # Electric Blue       - good
             (131, 52, 113),   # Burgundy
         ]
     }
