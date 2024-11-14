@@ -342,43 +342,48 @@ class ScienceGame:
         self.screen.blit(msg_surface, msg_rect)
 
     def draw_tile(self, tile: Tile) -> None:
-                if tile.is_flipping:
-                    scale = abs(math.cos(tile.flip_progress * math.pi))
-                    scaled_width = tile.rect.width * scale
-                    x_offset = (tile.rect.width - scaled_width) / 2
-                    scaled_rect = pygame.Rect(
-                        tile.rect.x + x_offset,
-                        tile.rect.y,
-                        scaled_width,
-                        tile.rect.height
-                    )
-                    color = tile.color if tile.flip_progress >= 0.5 else (60, 80, 100)
-                    pygame.draw.rect(self.screen, color, scaled_rect, border_radius=20)
-                    
-                    if scale > 0.1:
-                        center = scaled_rect.center
-                        if tile.flip_progress >= 0.5:
-                            for radius in (15, 30):
-                                pygame.draw.circle(self.screen, (255, 255, 255, 128), 
-                                                center, int(radius * scale), 1)
-                        else:
-                            for offset in range(0, 31, 15):
-                                pygame.draw.circle(self.screen, (100, 150, 200),
-                                                center, int(offset * scale), 1)
+        if tile.is_flipping:
+            scale = abs(math.cos(tile.flip_progress * math.pi))
+            scaled_width = tile.rect.width * scale
+            x_offset = (tile.rect.width - scaled_width) / 2
+            scaled_rect = pygame.Rect(
+                tile.rect.x + x_offset,
+                tile.rect.y,
+                scaled_width,
+                tile.rect.height
+            )
+            color = tile.color if tile.flip_progress >= 0.5 else (60, 80, 100)
+            pygame.draw.rect(self.screen, color, scaled_rect, border_radius=20)
+            # Added white stroke
+            pygame.draw.rect(self.screen, (255, 255, 255), scaled_rect, 1, border_radius=20)
+            
+            if scale > 0.1:
+                center = scaled_rect.center
+                if tile.flip_progress >= 0.5:
+                    for radius in (15, 30):
+                        pygame.draw.circle(self.screen, (255, 255, 255, 128), 
+                                        center, int(radius * scale), 1)
                 else:
-                    if tile.revealed:
-                        pygame.draw.rect(self.screen, tile.color, tile.rect, border_radius=20)
-                        for radius in (15, 30):
-                            pygame.draw.circle(self.screen, (255, 255, 255, 128), 
-                                            tile.rect.center, radius, 1)
-                    else:
-                        pygame.draw.rect(self.screen, (60, 80, 100), tile.rect, border_radius=20)
-                        pygame.draw.rect(self.screen, (80, 100, 120), tile.rect, 2, border_radius=20)
-                        for offset in range(0, 31, 15):
-                            pygame.draw.circle(self.screen, (100, 150, 200),
-                                            tile.rect.center, offset, 1)
-
-    
+                    for offset in range(0, 31, 15):
+                        pygame.draw.circle(self.screen, (100, 150, 200),
+                                        center, int(offset * scale), 1)
+        else:
+            if tile.revealed:
+                pygame.draw.rect(self.screen, tile.color, tile.rect, border_radius=20)
+                # Added white stroke
+                pygame.draw.rect(self.screen, (255, 255, 255), tile.rect, 2, border_radius=20)
+                for radius in (15, 30):
+                    pygame.draw.circle(self.screen, (255, 255, 255, 128), 
+                                    tile.rect.center, radius, 1)
+            else:
+                pygame.draw.rect(self.screen, (60, 80, 100), tile.rect, border_radius=20)
+                pygame.draw.rect(self.screen, (80, 100, 120), tile.rect, 2, border_radius=20)
+                # Added white stroke
+                pygame.draw.rect(self.screen, (255, 255, 255), tile.rect, 2, border_radius=20)
+                for offset in range(0, 31, 15):
+                    pygame.draw.circle(self.screen, (100, 150, 200),
+                                    tile.rect.center, offset, 1)
+        
     def reset_game(self) -> None:
         # Update high score before resetting
         if self.state.score > self.state.high_score:
@@ -414,8 +419,8 @@ class ScienceGame:
             score_font = pygame.font.Font(None, 72)  # Font for score and time
             
             # Render congratulations text
-            congrats = title_font.render("CONGRATULATIONS!", True, (255, 215, 0))  # Golden color
-            complete = title_font.render("ALL LEVELS COMPLETE!", True, (255, 215, 0))
+            congrats = title_font.render("CONGRATULATIONS!", True, (94, 180, 251))  # Blue color
+            complete = title_font.render("ALL LEVELS COMPLETE!", True, (94, 180, 251))
             
             # Position congratulations text
             self.screen.blit(congrats, (screen_center_x - congrats.get_width() // 2, 120))
