@@ -72,23 +72,23 @@ class ScienceGame:
             (255, 67, 89),    # Bright Red
             (1, 109, 48),    # Forest Green - changed
             (241, 196, 15),   # Golden Yellow
-            (41, 128, 185),   # Ocean Blue - changed 
+            (41, 128, 185),   # Ocean Blue -  
             (220, 116, 0),   # Deep Orange - changed
             (142, 68, 173),   # Deep Purple 
-            (0, 184, 148),    # Dark blue - changed
-            (255, 0, 158),    #  Pink - changed
+            (0, 184, 148),    # Dark blue - 
+            (255, 0, 158),    #  Pink - needs change
         ],
         2: [  # Level 2 colors (12 pairs) - Adding more distinct colors
             (255, 67, 89),    # Bright Red
             (39, 174, 96),    # Forest Green
-            (241, 196, 15),   # Golden Yellow
+            (241, 196, 15),   # Golden Yellow - change
             (41, 128, 185),   # Ocean Blue
-            (243, 156, 18),   # Deep Orange
+            (243, 156, 18),   # Deep Orange - needs change
             (142, 68, 173),   # Deep Purple
             (0, 184, 148),    # Dark Turquoise
             (238, 82, 177),   # Hot Pink
             (46, 64, 89),     # Navy Blue
-            (108, 52, 131),   # Dark Purple
+            (108, 52, 131),   # Dark Purple - needs change
             (6, 82, 221),     # Electric Blue
             (131, 52, 113),   # Burgundy
         ]
