@@ -9,10 +9,12 @@ from typing import Tuple, Optional, Set, List, Dict
 class GameState:
     level: int = 1
     score: int = 0
+    high_score: int = 0  # Add high score tracking
     matches_found: int = 0
     selected_tile: Optional[Tuple[int, int]] = None
     game_time: float = 0
-    message: str = "Little Scientists: Matching Adventure Quest!"
+    best_time: float = float('inf')  # Add best time tracking
+    message: str = "Matching Adventure Quest!"
     matched_pairs: Set[Tuple[int, int]] = field(default_factory=set)
     game_complete: bool = False
     game_active: bool = False
@@ -65,37 +67,35 @@ class Button:
         return self.rect.collidepoint(pos)
 
 class ScienceGame:
-    # Level 1: 4x4 grid (8 pairs needed)
-    # Level 2: 5x5 grid (12 pairs needed)
     COLORS = {
-        1: [  # Level 1 colors (8 pairs)
-            (230, 25, 75),    # Red
-            (60, 180, 75),    # Green
-            (255, 225, 25),   # Yellow
-            (0, 130, 200),    # Blue
-            (245, 130, 48),   # Orange
-            (145, 30, 180),   # Purple
-            (70, 240, 240),   # Cyan
-            (240, 50, 230),   # Magenta
+        1: [  # Level 1 colors (8 pairs) - All very distinct
+            (225, 0, 0),    #  Red                  -fixed
+            (2, 106, 30),    # Forest Green         -fixed
+            (241, 196, 15),   # Golden Yellow
+            (23, 0, 255),   # dark Blue             - fixed  
+            (255, 131, 0),   # Deep Orange          -fixed
+            (138, 0, 223),   # Deep Purple          -fixed
+            (0, 184, 148),    # greenish blue 
+            (255, 119, 234),    # Pink             -fixed
         ],
-        2: [  # Level 2 colors (12 pairs)
-            (230, 25, 75),    # Red
-            (60, 180, 75),    # Green
-            (255, 225, 25),   # Yellow
-            (0, 130, 200),    # Blue
-            (245, 130, 48),   # Orange
-            (145, 30, 180),   # Purple
-            (70, 240, 240),   # Cyan
-            (240, 50, 230),   # Magenta
-            (210, 245, 60),   # Lime
-            (250, 190, 212),  # Pink
-            (0, 128, 128),    # Teal
-            (220, 190, 255),  # Lavender
+        2: [  # Level 2 colors (12 pairs) - Adding more distinct colors
+            (225, 0, 0),    # Bright Red           - fixed
+            (2, 106, 30),    # Forest Green        - fixed
+            (241, 196, 15),   # Golden Yellow      - good
+            (120, 105, 78),   # dirty Blue         - fixed
+            (255, 131, 0),   # Deep Orange        - fixed
+            (138, 0, 223),   # Deep Purple          - fixed
+            (0, 184, 148),    # Dark Blue           - good
+            (228, 1, 218),   # Hot Pink          - fix 
+            (205, 128, 128),     # light red           - fixed
+            (186, 122, 250),   # light Purple         - fixed
+            (6, 82, 221),     # Electric Blue       - good
+            (161, 161, 161),   # grey
         ]
     }
 
     SCIENCE_MESSAGES = [
-        "Excellent observation!",
+        "Excellent observation!",   
         "Data match found!",
         "Scientific success!",
         "Discovery made!",
@@ -121,14 +121,15 @@ class ScienceGame:
         self.background_color = (20, 30, 40)
         
         screen_center_x = self.screen.get_width() // 2
-        self.start_button = Button("Start", pygame.Rect(screen_center_x - 100, 400, 200, 50), 
-                                 (0, 200, 0), (0, 255, 0))
-        self.quit_button = Button("Quit", pygame.Rect(screen_center_x - 100, 470, 200, 50), 
-                                 (200, 0, 0), (255, 0, 0))
+        self.start_button = Button("Let's Play!", 
+                                 pygame.Rect(screen_center_x - 150, 400, 300, 70),  # Increased from 200,50 to 300,70
+                                 (38, 188, 81), (98, 208, 121))
+        self.quit_button = Button("Exit Game", 
+                                pygame.Rect(screen_center_x - 150, 490, 300, 70),  # Increased from 200,50 to 300,70
+                                (255, 89, 94), (255, 129, 134))
         self.exit_button = Button("X", 
                                 pygame.Rect(self.screen.get_width() - 50, 10, 40, 40),
-                                (200, 0, 0),
-                                (255, 0, 0))
+                                (255, 89, 94), (255, 129, 134))
         
         self.game_started = False
         self.countdown_start = 0
@@ -209,24 +210,10 @@ class ScienceGame:
         self.state.matches_found = 0
         self.state.matched_pairs.clear()
         self.state.selected_tile = None
-        self.state.message = f"Starting Level {self.state.level}! More complex level ahead!"
+        self.state.message = f"Starting Level {self.state.level}!"
         self.setup_level()
         self.transition_active = False
         self.transition_start_time = 0
-
-    def show_transition_screen(self, text1: str, text2: str) -> None:
-        overlay = pygame.Surface(self.screen.get_size())
-        overlay.set_alpha(200)
-        overlay.fill((20, 30, 40))
-        
-        msg1 = self.title_font.render(text1, True, (100, 200, 255))
-        msg2 = self.font.render(text2, True, (255, 255, 255))
-        
-        self.screen.blit(overlay, (0, 0))
-        screen_center_x = self.screen.get_width() // 2
-        self.screen.blit(msg1, (screen_center_x - msg1.get_width() // 2, 250))
-        self.screen.blit(msg2, (screen_center_x - msg2.get_width() // 2, 320))
-        pygame.display.flip()  # Make sure the transition screen is displayed
 
     # Also replace the handle_click method
     def handle_click(self, pos: Tuple[int, int], current_time: float) -> None:
@@ -292,115 +279,211 @@ class ScienceGame:
                 particle[4] = random.randint(150, 255)
 
     def draw_laboratory_ui(self) -> None:
-        self.screen.fill(self.background_color)
+        self.screen.fill((15, 23, 42))
+        
+        header_height = 120
+        pygame.draw.rect(self.screen, (0, 0, 0), (0, 0, self.screen.get_width(), header_height))
+        pygame.draw.line(self.screen, (94, 180, 251), (0, header_height), 
+                        (self.screen.get_width(), header_height), 3)
         
         # Draw particles
         for particle in self.particles:
             pygame.draw.circle(self.screen, (int(particle[4]),) * 3, 
                             (int(particle[0]), int(particle[1])), int(particle[5]))
 
-        # Create larger header area
-        header_height = 120
-        pygame.draw.rect(self.screen, (30, 40, 50), (0, 0, self.screen.get_width(), header_height))
-        pygame.draw.line(self.screen, (50, 150, 200), (0, header_height), 
-                        (self.screen.get_width(), header_height), 3)
-        
-        # Create fonts for stats - reduced from 72 to 56
+        # More colorful stats
         stats_font = pygame.font.Font(None, 56)
-        
-        # Define stats with spacing
         stats = [
-            f"LEVEL: {self.state.level}",
-            f"TIME: {self.state.game_time:.1f}s",
-            f"SCORE: {self.state.score}"
+            ("LEVEL " + str(self.state.level), (255, 129, 134)),  # Friendly red
+            ("TIME: " + f"{self.state.game_time:.1f}s", (38, 188, 81)),  # Green
+            ("SCORE: " + str(self.state.score), (94, 180, 251))  # Blue
         ]
         
-        # Calculate total width of all stats
         total_width = 0
         stat_surfaces = []
-        for text in stats:
-            surface = stats_font.render(text, True, (100, 200, 255))
+        for text, color in stats:
+            surface = stats_font.render(text, True, color)
             stat_surfaces.append(surface)
             total_width += surface.get_width()
         
-        # Increased spacing between stats from 50 to 100
         spacing = 100
         total_width += spacing * (len(stats) - 1)
-        
-        # Calculate starting x position to center all stats
         start_x = (self.screen.get_width() - total_width) // 2
         current_x = start_x
         
-        # Draw centered stats
-        for surface in stat_surfaces:
+        # Draw stats with shadows for fun effect
+        for i, surface in enumerate(stat_surfaces):
+            # Draw shadow
+            shadow_surface = stats_font.render(stats[i][0], True, (180, 180, 180))
+            self.screen.blit(shadow_surface, (current_x + 2, header_height // 2 - surface.get_height() // 2 + 2))
+            # Draw text
             self.screen.blit(surface, (current_x, header_height // 2 - surface.get_height() // 2))
             current_x += surface.get_width() + spacing
 
         # Update exit button position and size
         self.exit_button.rect = pygame.Rect(self.screen.get_width() - 80, 20, 60, 60)
-        self.exit_button.font = pygame.font.Font(None, 48)  # Larger font for exit button
+        self.exit_button.font = pygame.font.Font(None, 48)
         self.exit_button.draw(self.screen)
 
         # Draw message at bottom with larger font
-        message_font = pygame.font.Font(None, 48)  # Increased font size for message
-        msg_surface = message_font.render(self.state.message, True, (255, 255, 255))
-        self.screen.blit(msg_surface, 
-                        ((self.screen.get_width() - msg_surface.get_width()) // 2, 
-                        self.screen.get_height() - 60))
+            # Draw message at bottom with larger font and shadow
+        message_font = pygame.font.Font(None, 48)
+    # Shadow
+        shadow_surface = message_font.render(self.state.message, True, (20, 30, 40))
+        shadow_rect = shadow_surface.get_rect(
+        center=(self.screen.get_width() // 2 + 2, self.screen.get_height() - 58)
+    )
+        self.screen.blit(shadow_surface, shadow_rect)
+    # Main text
+        msg_surface = message_font.render(self.state.message, True, (94, 180, 251))
+        msg_rect = msg_surface.get_rect(
+        center=(self.screen.get_width() // 2, self.screen.get_height() - 60)
+    )
+        self.screen.blit(msg_surface, msg_rect)
 
     def draw_tile(self, tile: Tile) -> None:
-                if tile.is_flipping:
-                    scale = abs(math.cos(tile.flip_progress * math.pi))
-                    scaled_width = tile.rect.width * scale
-                    x_offset = (tile.rect.width - scaled_width) / 2
-                    scaled_rect = pygame.Rect(
-                        tile.rect.x + x_offset,
-                        tile.rect.y,
-                        scaled_width,
-                        tile.rect.height
-                    )
-                    color = tile.color if tile.flip_progress >= 0.5 else (60, 80, 100)
-                    pygame.draw.rect(self.screen, color, scaled_rect, border_radius=20)
-                    
-                    if scale > 0.1:
-                        center = scaled_rect.center
-                        if tile.flip_progress >= 0.5:
-                            for radius in (15, 30):
-                                pygame.draw.circle(self.screen, (255, 255, 255, 128), 
-                                                center, int(radius * scale), 1)
-                        else:
-                            for offset in range(0, 31, 15):
-                                pygame.draw.circle(self.screen, (100, 150, 200),
-                                                center, int(offset * scale), 1)
+        if tile.is_flipping:
+            scale = abs(math.cos(tile.flip_progress * math.pi))
+            scaled_width = tile.rect.width * scale
+            x_offset = (tile.rect.width - scaled_width) / 2
+            scaled_rect = pygame.Rect(
+                tile.rect.x + x_offset,
+                tile.rect.y,
+                scaled_width,
+                tile.rect.height
+            )
+            color = tile.color if tile.flip_progress >= 0.5 else (60, 80, 100)
+            pygame.draw.rect(self.screen, color, scaled_rect, border_radius=20)
+            # Added white stroke
+            pygame.draw.rect(self.screen, (255, 255, 255), scaled_rect, 1, border_radius=20)
+            
+            if scale > 0.1:
+                center = scaled_rect.center
+                if tile.flip_progress >= 0.5:
+                    for radius in (15, 30):
+                        pygame.draw.circle(self.screen, (255, 255, 255, 128), 
+                                        center, int(radius * scale), 1)
                 else:
-                    if tile.revealed:
-                        pygame.draw.rect(self.screen, tile.color, tile.rect, border_radius=20)
-                        for radius in (15, 30):
-                            pygame.draw.circle(self.screen, (255, 255, 255, 128), 
-                                            tile.rect.center, radius, 1)
-                    else:
-                        pygame.draw.rect(self.screen, (60, 80, 100), tile.rect, border_radius=20)
-                        pygame.draw.rect(self.screen, (80, 100, 120), tile.rect, 2, border_radius=20)
-                        for offset in range(0, 31, 15):
-                            pygame.draw.circle(self.screen, (100, 150, 200),
-                                            tile.rect.center, offset, 1)
+                    for offset in range(0, 31, 15):
+                        pygame.draw.circle(self.screen, (100, 150, 200),
+                                        center, int(offset * scale), 1)
+        else:
+            if tile.revealed:
+                pygame.draw.rect(self.screen, tile.color, tile.rect, border_radius=20)
+                # Added white stroke
+                pygame.draw.rect(self.screen, (255, 255, 255), tile.rect, 2, border_radius=20)
+                for radius in (15, 30):
+                    pygame.draw.circle(self.screen, (255, 255, 255, 128), 
+                                    tile.rect.center, radius, 1)
+            else:
+                pygame.draw.rect(self.screen, (60, 80, 100), tile.rect, border_radius=20)
+                pygame.draw.rect(self.screen, (80, 100, 120), tile.rect, 2, border_radius=20)
+                # Added white stroke
+                pygame.draw.rect(self.screen, (255, 255, 255), tile.rect, 2, border_radius=20)
+                for offset in range(0, 31, 15):
+                    pygame.draw.circle(self.screen, (100, 150, 200),
+                                    tile.rect.center, offset, 1)
+        
+    def reset_game(self) -> None:
+        # Update high score before resetting
+        if self.state.score > self.state.high_score:
+            self.state.high_score = self.state.score
+        # Update best time if game was completed
+        if self.state.game_complete and self.state.game_time < self.state.best_time:
+            self.state.best_time = self.state.game_time
+        
+        # Reset game state
+        self.state = GameState(high_score=self.state.high_score, best_time=self.state.best_time)
+        self.tiles.clear()
+        self.setup_level()
+        self.game_started = False
+        self.countdown_start = 0
+        self.transition_active = False
+        self.transition_start_time = 0
+        self.waiting_for_reset = False
+
+    def show_transition_screen(self, text1: str, text2: str) -> None:
+        # Create a darker overlay for better visibility
+        overlay = pygame.Surface(self.screen.get_size())
+        overlay.set_alpha(250)  # Increased opacity TEST HERE
+        overlay.fill((10, 20, 30))  # Darker background
+        self.screen.blit(overlay, (0, 0))
+        
+        screen_center_x = self.screen.get_width() // 2
+        screen_center_y = self.screen.get_height() // 2
+        
+        # Only show final screen after level 2
+        if self.state.level == 2:
+            # Create different font sizes
+            title_font = pygame.font.Font(None, 84)  # Larger font for main title
+            score_font = pygame.font.Font(None, 72)  # Font for score and time
+            
+            # Render congratulations text
+            congrats = title_font.render("CONGRATULATIONS!", True, (94, 180, 251))  # Blue color
+            complete = title_font.render("ALL LEVELS COMPLETE!", True, (94, 180, 251))
+            
+            # Position congratulations text
+            self.screen.blit(congrats, (screen_center_x - congrats.get_width() // 2, 120))
+            self.screen.blit(complete, (screen_center_x - complete.get_width() // 2, 200))
+            
+            # Create and draw rectangles for score and time
+            score_text = score_font.render(f"Final Score: {self.state.score}", True, (255, 255, 255))
+            time_text = score_font.render(f"Time: {self.state.game_time:.1f}s", True, (255, 255, 255))
+            
+            # Score rectangle
+            score_rect = pygame.Rect(
+                screen_center_x - 250,  # Wider rectangle
+                screen_center_y - 50,
+                500,  # Fixed width
+                80   # Fixed height
+            )
+            pygame.draw.rect(self.screen, (30, 60, 90), score_rect, border_radius=10)
+            pygame.draw.rect(self.screen, (94, 180, 251), score_rect, 3, border_radius=10)  # Blue border
+            self.screen.blit(score_text, (score_rect.centerx - score_text.get_width() // 2, score_rect.centery - score_text.get_height() // 2))
+            
+            # Time rectangle
+            time_rect = pygame.Rect(
+                screen_center_x - 250,
+                screen_center_y + 50,
+                500,
+                80
+            )
+            pygame.draw.rect(self.screen, (30, 60, 90), time_rect, border_radius=10)
+            pygame.draw.rect(self.screen, (94, 180, 251), time_rect, 3, border_radius=10)  # Blue border
+            self.screen.blit(time_text, (time_rect.centerx - time_text.get_width() // 2, time_rect.centery - time_text.get_height() // 2))
+            
+            # Create larger play again button with glowing effect
+            self.play_again_button = Button(
+                "Play Again",
+                pygame.Rect(screen_center_x - 200, screen_center_y + 180, 400, 100),  # Larger button
+                (38, 188, 81),  # Green color
+                (98, 208, 121)  # Lighter green for hover
+            )
+            self.play_again_button.font = pygame.font.Font(None, 72)  # Larger font for button
+            self.play_again_button.draw(self.screen)
+        else:
+            # Level 1 completion screen remains the same
+            msg1 = self.title_font.render(text1, True, (100, 200, 255))
+            msg2 = self.font.render(text2, True, (255, 255, 255))
+            self.screen.blit(msg1, (screen_center_x - msg1.get_width() // 2, 150))
+            self.screen.blit(msg2, (screen_center_x - msg2.get_width() // 2, 220))
 
     def draw_start_screen(self) -> None:
-            self.screen.fill(self.background_color)
-            
-            for particle in self.particles:
-                pygame.draw.circle(self.screen, (int(particle[4]),) * 3, 
-                                (int(particle[0]), int(particle[1])), int(particle[5]))
-                
-            self.exit_button.draw(self.screen)
-
-            title_text = self.title_font.render("Epic Memory Match!", True, (255, 255, 255))
-            title_rect = title_text.get_rect(center=(self.screen.get_width() // 2, 200))
-            self.screen.blit(title_text, title_rect)
-
-            self.start_button.draw(self.screen)
-            self.quit_button.draw(self.screen)
+        self.screen.fill(self.background_color)
         
+        for particle in self.particles:
+            pygame.draw.circle(self.screen, (int(particle[4]),) * 3, 
+                            (int(particle[0]), int(particle[1])), int(particle[5]))
+            
+        self.exit_button.draw(self.screen)
+
+        title_text = self.title_font.render("Matching Adventure!", True, (255, 255, 255))
+        title_rect = title_text.get_rect(center=(self.screen.get_width() // 2, 200))
+        self.screen.blit(title_text, title_rect)
+
+        self.start_button.draw(self.screen)
+        self.quit_button.draw(self.screen)
+    
     def run(self) -> None:
         clock = pygame.time.Clock()
         while True:
@@ -410,19 +493,17 @@ class ScienceGame:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     return
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        pygame.quit()
-                        return
-                    elif event.key == pygame.K_f:
-                        self.fullscreen = not self.fullscreen
-                        self.screen = self.set_screen_mode()
-                        self.setup_level()
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if self.exit_button.rect.collidepoint(event.pos):
                         pygame.quit()
                         return
-                        
+                    
+                    # Only check for play again button in level 2
+                    if self.transition_active and self.state.level == 2 and hasattr(self, 'play_again_button'):
+                        if self.play_again_button.is_clicked(event.pos):
+                            self.reset_game()
+                            continue
+                            
                     if not self.game_started:
                         if self.start_button.is_clicked(event.pos):
                             self.game_started = True
@@ -452,7 +533,7 @@ class ScienceGame:
                     )
                     self.screen.blit(countdown_text, countdown_rect)
                 else:
-                    if not self.state.game_active:  # First frame after countdown
+                    if not self.state.game_active:
                         self.state.game_active = True
                         self.state.game_time = 0
                     
@@ -461,9 +542,11 @@ class ScienceGame:
                     
                     self.update_tiles(current_time)
                     self.update_particles()
+                    
+                    # Calculate required matches before checking completion
+                    required_matches = (self.grid_size * self.grid_size) // 2
 
                     # Handle level completion and transitions
-                    required_matches = (self.grid_size * self.grid_size) // 2
                     if self.state.matches_found == required_matches:
                         if not self.transition_active:
                             self.transition_active = True
@@ -471,26 +554,22 @@ class ScienceGame:
                             if self.state.level == 1:
                                 self.show_transition_screen(
                                     "EXPERIMENT 1 COMPLETE!",
-                                    "Preparing Level 2... More complex level ahead!"
+                                    "Preparing Level 2... Harder level up ahead!"
+
                                 )
                             else:
                                 self.show_transition_screen(
-                                    "CONGRATULATIONS! ALL EXPERIMENTS COMPLETE!",
+                                    "CONGRATULATIONS! ALL LEVELS COMPLETE!",
                                     f"Final Score: {self.state.score} - Time: {self.state.game_time:.1f}s"
                                 )
-                                time.sleep(2)  # Show final screen for 2 seconds
-                                pygame.quit()
-                                return
 
-                        if current_time - self.transition_start_time >= 2:  # Wait 2 seconds before proceeding
+                        if current_time - self.transition_start_time >= 2:
                             if self.state.level == 1:
                                 self.start_next_level()
                             else:
                                 self.state.game_complete = True
-                                pygame.quit()
-                                return
 
-                    # Only draw game if not in transition
+                    # Continue drawing the game
                     if not self.transition_active:
                         self.draw_laboratory_ui()
                         for tile in self.tiles.values():
